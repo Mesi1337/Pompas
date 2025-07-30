@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💪 Tracker Pompek</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background: linear-gradient(135deg, #1f2937, #111827);
+        }
+        
+        body.dark-mode .card {
+            background: #374151;
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .header h1 {
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .header p {
+            color: #d1d5db;
+        }
+        
+        body.dark-mode .add-section h2,
+        body.dark-mode .goal-header h2 {
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .stat-card {
+            background: #4b5563;
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .stat-value {
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .stat-title {
+            color: #d1d5db;
+        }
+        
+        body.dark-mode .extended-stat {
+            background: #4b5563;
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .extended-stat h4 {
+            color: #d1d5db;
+        }
+        
+        body.dark-mode .extended-stat p {
+            color: #60a5fa;
+        }
+        
+        body.dark-mode .input-group input,
+        body.dark-mode .goal-input input {
+            background: #4b5563;
+            border-color: #6b7280;
+            color: #f9fafb;
+        }
+        
+        body.dark-mode .input-group input::placeholder {
+            color: #9ca3af;
+        }
+        
+        body.dark-mode .progress-text,
+        body.dark-mode .today-count {
+            color: #d1d5db;
+        }
+        
+        body.dark-mode .today-count span {
+            color: #60a5fa;
+        }
+        
+        body.dark-mode .stats-toggle {
+            color: #f9fafb;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        
+        body.dark-mode .theme-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #6b7280;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .add-section {
+            margin-bottom: 24px;
+        }
+        
+        .add-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .today-count {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .today-count span {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .goal-section {
+            margin-bottom: 16px;
+        }
+        
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .goal-header h2 {
+            color: #1f2937;
+            font-size: 1.25rem;
+        }
+        
+        .goal-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .goal-input input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+        
+        .stats-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #1f2937;
+        }
+        
+        .extended-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .extended-stat {
+            text-align: center;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .extended-stat h4 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .extended-stat p {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #6366f1;
+        }
+        
+        .extended-stat .small-text {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .extended-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+            <h1>💪 Tracker Pompek</h1>
+            <p>Śledź swój progress i osiągaj cele!</p>
+        </div>
+
+        <!-- Quick Add Section -->
+        <div class="card add-section">
+            <h2>➕ Dodaj pompki za dziś (<span id="currentDate"></span>)</h2>
+            <div class="input-group">
+                <input type="number" id="pushupInput" placeholder="Ile pompek zrobiłeś?" min="1">
+                <button class="btn" onclick="addPushups()">Dodaj</button>
+            </div>
+            <div class="today-count">
+                Dzisiaj: <span id="todayCount">0 pompek</span>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📈</span>
+                <div class="stat-title">Łącznie</div>
+                <div class="stat-value" id="totalPushups">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-icon">📅</span>
+                <div class="stat-title">Średnia</div>
+                <div class="stat-value" id="dailyAverage">0/dzień</div>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-icon">🏆</span>
+                <div class="stat-title">Rekord</div>
+                <div class="stat-value" id="dailyRecord">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-icon">🔥</span>
+                <div class="stat-title">Seria</div>
+                <div class="stat-value" id="streakDays">0 dni</div>
+            </div>
+        </div>
+
+        <!-- Goal Progress -->
+        <div class="card goal-section">
+            <div class="goal-header">
+                <h2>🎯 Cel Totalny</h2>
+                <div class="goal-input">
+                    <input type="number" id="goalInput" value="1000" onchange="updateGoal()">
+                    <span style="font-size: 14px; color: #6b7280;">pompek</span>
+                </div>
+            </div>
+            
+            <div class="progress-text">
+                <span><span id="currentProgress">0</span> / <span id="goalValue">1000</span> pompek</span>
+                <span id="progressPercentage">0.0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; margin-top: 8px;">
+                Do celu zostało: <span style="font-weight: 600;" id="remaining">1000 pompek</span>
+            </p>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📊 Ostatnie 7 dni</h3>
+                <div class="chart-container">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📊 Ostatnie 4 tygodnie</h3>
+                <div class="chart-container">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extended Stats -->
+        <div class="card">
+            <h2>📊 Szczegółowe Statystyki</h2>
+            <div class="extended-stats">
+                <div class="extended-stat">
+                    <h4>Dni aktywnych</h4>
+                    <p id="activeDays">0</p>
+                </div>
+                
+                <div class="extended-stat">
+                    <h4>Najlepszy tydzień</h4>
+                    <p id="bestWeek">0</p>
+                </div>
+                
+                <div class="extended-stat">
+                    <h4>Tempo do celu</h4>
+                    <p id="daysToGoal">∞ dni</p>
+                </div>
+                
+                <div class="extended-stat">
+                    <h4>Procent celu</h4>
+                    <p id="goalPercent">0.0%</p>
+                </div>
+                
+                <div class="extended-stat">
+                    <h4>Ostatnie 7 dni</h4>
+                    <p id="last7Days">0</p>
+                </div>
+                
+                <div class="extended-stat">
+                    <h4>Potrzeba dziennie</h4>
+                    <p id="dailyNeeded">0</p>
+                    <div class="small-text">(na 30 dni)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export/Import Section -->
+        <div class="card">
+            <h2>💾 Zarządzanie danymi</h2>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="btn" onclick="exportData()" style="background: #10b981;">📤 Eksportuj dane</button>
+                <button class="btn" onclick="document.getElementById('importFile').click()" style="background: #f59e0b;">📥 Importuj dane</button>
+                <button class="btn" onclick="undoLast()" style="background: #ef4444;">↩️ Cofnij ostatnie</button>
+            </div>
+            <input type="file" id="importFile" accept=".txt" style="display: none;" onchange="importData(event)">
+            <div style="font-size: 12px; color: #6b7280; margin-top: 8px;">
+                💡 Eksportuj dane do pliku tekstowego, edytuj w notatniku i importuj z powrotem
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let data = {};
+        let goal = 1000;
+        let dailyChart = null;
+        let weeklyChart = null;
+        let lastAction = null; // For undo functionality
+        let isDarkMode = false;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('App initializing...');
+            loadData();
+            loadTheme();
+            updateCurrentDate();
+            updateAllStats();
+            createCharts();
+            
+            // Add enter key support for input
+            document.getElementById('pushupInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addPushups();
+                }
+            });
+            console.log('App initialized successfully');
+        });
+
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('pushupData');
+                const savedGoal = localStorage.getItem('pushupGoal');
+                
+                if (savedData) {
+                    data = JSON.parse(savedData);
+                    console.log('Loaded data:', data);
+                }
+                
+                if (savedGoal) {
+                    goal = parseInt(savedGoal);
+                    document.getElementById('goalInput').value = goal;
+                    console.log('Loaded goal:', goal);
+                }
+            } catch (e) {
+                console.error('Error loading data:', e);
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('pushupData', JSON.stringify(data));
+                localStorage.setItem('pushupGoal', goal.toString());
+                localStorage.setItem('pushupDarkMode', isDarkMode.toString());
+                console.log('Data saved successfully');
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('pushupDarkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+            
+            saveData();
+            
+            // Recreate charts to match theme
+            setTimeout(() => {
+                updateCharts();
+            }, 100);
+        }
+
+        function updateCurrentDate() {
+            const today = new Date().toLocaleDateString('pl-PL');
+            document.getElementById('currentDate').textContent = today;
+        }
+
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function addPushups() {
+            console.log('Adding pushups...');
+            const input = document.getElementById('pushupInput');
+            const amount = parseInt(input.value);
+            
+            console.log('Input value:', input.value, 'Parsed amount:', amount);
+            
+            if (!amount || amount <= 0) {
+                console.log('Invalid amount');
+                return;
+            }
+            
+            const today = getTodayKey();
+            console.log('Today key:', today);
+            
+            // Store for undo functionality
+            lastAction = {
+                type: 'add',
+                date: today,
+                amount: amount,
+                previousValue: data[today] || 0
+            };
+            
+            data[today] = (data[today] || 0) + amount;
+            console.log('Updated data:', data);
+            
+            input.value = '';
+            saveData();
+            updateAllStats();
+            updateCharts();
+            
+            console.log('Pushups added successfully');
+        }
+
+        function undoLast() {
+            if (!lastAction) {
+                alert('Brak akcji do cofnięcia');
+                return;
+            }
+            
+            if (lastAction.type === 'add') {
+                data[lastAction.date] = lastAction.previousValue;
+                if (data[lastAction.date] === 0) {
+                    delete data[lastAction.date];
+                }
+            }
+            
+            lastAction = null;
+            saveData();
+            updateAllStats();
+            updateCharts();
+            
+            console.log('Last action undone');
+        }
+
+        function exportData() {
+            try {
+                let exportText = "# TRACKER POMPEK - EKSPORT DANYCH\n";
+                exportText += "# Format: YYYY-MM-DD: liczba pompek\n";
+                exportText += "# Możesz edytować liczby i importować z powrotem\n";
+                exportText += "# Linie zaczynające się od # są ignorowane\n\n";
+                
+                exportText += `# CEL TOTALNY: ${goal}\n\n`;
+                
+                exportText += "# DANE DZIENNE:\n";
+                
+                const sortedDates = Object.keys(data).sort();
+                
+                if (sortedDates.length === 0) {
+                    exportText += "# Brak danych do eksportu\n";
+                } else {
+                    sortedDates.forEach(date => {
+                        if (data[date] > 0) {
+                            const formattedDate = new Date(date).toLocaleDateString('pl-PL');
+                            exportText += `${date}: ${data[date]} # ${formattedDate}\n`;
+                        }
+                    });
+                }
+                
+                exportText += `\n# STATYSTYKI (tylko informacyjne):\n`;
+                exportText += `# Łączna liczba pompek: ${getTotalPushups()}\n`;
+                exportText += `# Średnia dzienna: ${getDailyAverage()}\n`;
+                exportText += `# Rekord dzienny: ${getDailyRecord()}\n`;
+                exportText += `# Dni aktywnych: ${Object.values(data).filter(count => count > 0).length}\n`;
+                
+                const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                
+                const today = new Date().toISOString().split('T')[0];
+                a.href = url;
+                a.download = `pompki_backup_${today}.txt`;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+                console.log('Data exported successfully');
+                
+            } catch (e) {
+                console.error('Error exporting data:', e);
+                alert('Błąd podczas eksportu danych');
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+                    
+                    let newData = {};
+                    let newGoal = goal;
+                    let importedCount = 0;
+                    
+                    lines.forEach(line => {
+                        line = line.trim();
+                        
+                        // Skip comments and empty lines
+                        if (line.startsWith('#') || line === '') return;
+                        
+                        // Check for goal line
+                        if (line.includes('CEL TOTALNY:')) {
+                            const goalMatch = line.match(/(\d+)/);
+                            if (goalMatch) {
+                                newGoal = parseInt(goalMatch[1]);
+                            }
+                            return;
+                        }
+                        
+                        // Parse data lines (YYYY-MM-DD: number)
+                        const match = line.match(/^(\d{4}-\d{2}-\d{2}):\s*(\d+)/);
+                        if (match) {
+                            const date = match[1];
+                            const count = parseInt(match[2]);
+                            
+                            // Validate date format
+                            if (new Date(date).toString() !== 'Invalid Date' && count > 0) {
+                                newData[date] = count;
+                                importedCount++;
+                            }
+                        }
+                    });
+                    
+                    if (importedCount === 0) {
+                        alert('Nie znaleziono prawidłowych danych do importu');
+                        return;
+                    }
+                    
+                    const confirmMessage = `Znaleziono ${importedCount} dni z danymi.\n\nCzy chcesz:\n- ZASTĄPIĆ wszystkie dane (usuń stare, wczytaj nowe)\n- SCALIĆ dane (dodaj nowe do istniejących)\n\nKliknij OK dla ZASTĄPIENIA, Anuluj dla SCALENIA`;
+                    
+                    if (confirm(confirmMessage)) {
+                        // Replace all data
+                        data = newData;
+                    } else {
+                        // Merge data
+                        Object.keys(newData).forEach(date => {
+                            data[date] = newData[date];
+                        });
+                    }
+                    
+                    goal = newGoal;
+                    document.getElementById('goalInput').value = goal;
+                    
+                    saveData();
+                    updateAllStats();
+                    updateCharts();
+                    
+                    alert(`Import zakończony pomyślnie!\nWczytano ${importedCount} dni z danymi.`);
+                    console.log('Data imported successfully');
+                    
+                } catch (e) {
+                    console.error('Error importing data:', e);
+                    alert('Błąd podczas importu danych. Sprawdź format pliku.');
+                }
+                
+                // Clear the file input
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function updateGoal() {
+            const newGoal = parseInt(document.getElementById('goalInput').value);
+            if (newGoal && newGoal > 0) {
+                goal = newGoal;
+                saveData();
+                updateAllStats();
+                console.log('Goal updated to:', goal);
+            }
+        }
+
+        function getTotalPushups() {
+            return Object.values(data).reduce((sum, count) => sum + count, 0);
+        }
+
+        function getDailyAverage() {
+            const entries = Object.entries(data).filter(([_, count]) => count > 0);
+            if (entries.length === 0) return 0;
+            return Math.round(getTotalPushups() / entries.length);
+        }
+
+        function getDailyRecord() {
+            return Math.max(...Object.values(data), 0);
+        }
+
+        function getStreakDays() {
+            const sortedDates = Object.keys(data).sort().reverse();
+            let streak = 0;
+            
+            for (const date of sortedDates) {
+                if (data[date] > 0) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        function getProgressPercentage() {
+            return Math.min((getTotalPushups() / goal) * 100, 100);
+        }
+
+        function updateAllStats() {
+            const today = getTodayKey();
+            const todayCount = data[today] || 0;
+            const total = getTotalPushups();
+            const progress = getProgressPercentage();
+            
+            console.log('Updating stats - Today:', todayCount, 'Total:', total);
+            
+            // Update today count
+            document.getElementById('todayCount').textContent = `${todayCount} pompek`;
+            
+            // Update main stats
+            document.getElementById('totalPushups').textContent = total;
+            document.getElementById('dailyAverage').textContent = `${getDailyAverage()}/dzień`;
+            document.getElementById('dailyRecord').textContent = getDailyRecord();
+            document.getElementById('streakDays').textContent = `${getStreakDays()} dni`;
+            
+            // Update goal progress
+            document.getElementById('currentProgress').textContent = total;
+            document.getElementById('goalValue').textContent = goal;
+            document.getElementById('progressPercentage').textContent = `${progress.toFixed(1)}%`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('remaining').textContent = `${Math.max(0, goal - total)} pompek`;
+            
+            // Update extended stats
+            updateExtendedStats();
+        }
+
+        function updateExtendedStats() {
+            const activeDays = Object.values(data).filter(count => count > 0).length;
+            const weeklyData = getWeeklyData();
+            const bestWeek = Math.max(...weeklyData.map(w => w.count), 0);
+            const dailyAvg = getDailyAverage();
+            const remaining = Math.max(0, goal - getTotalPushups());
+            const daysToGoal = dailyAvg > 0 ? Math.ceil(remaining / dailyAvg) : '∞';
+            const last7Days = getLast7DaysTotal();
+            const dailyNeeded = Math.max(0, Math.ceil(remaining / 30));
+            
+            document.getElementById('activeDays').textContent = activeDays;
+            document.getElementById('bestWeek').textContent = bestWeek;
+            document.getElementById('daysToGoal').textContent = daysToGoal === '∞' ? '∞ dni' : `${daysToGoal} dni`;
+            document.getElementById('goalPercent').textContent = `${getProgressPercentage().toFixed(1)}%`;
+            document.getElementById('last7Days').textContent = last7Days;
+            document.getElementById('dailyNeeded').textContent = dailyNeeded;
+        }
+
+        function getLast7DaysTotal() {
+            const last7Days = getDailyChartData();
+            return last7Days.reduce((sum, day) => sum + day.count, 0);
+        }
+
+        function getDailyChartData() {
+            const dates = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateKey = date.toISOString().split('T')[0];
+                dates.push({
+                    date: date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }),
+                    count: data[dateKey] || 0
+                });
+            }
+            return dates;
+        }
+
+        function getWeeklyData() {
+            const weeks = {};
+            Object.entries(data).forEach(([date, count]) => {
+                const weekStart = getWeekStart(new Date(date));
+                const weekKey = weekStart.toISOString().split('T')[0];
+                weeks[weekKey] = (weeks[weekKey] || 0) + count;
+            });
+            
+            return Object.entries(weeks)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .slice(-4)
+                .map(([date, count]) => ({
+                    week: new Date(date).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }),
+                    count: count
+                }));
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function createCharts() {
+            try {
+                createDailyChart();
+                createWeeklyChart();
+            } catch (e) {
+                console.error('Error creating charts:', e);
+            }
+        }
+
+        function createDailyChart() {
+            const ctx = document.getElementById('dailyChart').getContext('2d');
+            const chartData = getDailyChartData();
+            
+            if (dailyChart) {
+                dailyChart.destroy();
+            }
+            
+            // Theme-aware colors
+            const textColor = isDarkMode ? '#f9fafb' : '#374151';
+            const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            
+            dailyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.map(d => d.date),
+                    datasets: [{
+                        label: 'Pompki',
+                        data: chartData.map(d => d.count),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            const chartData = getWeeklyData();
+            
+            if (weeklyChart) {
+                weeklyChart.destroy();
+            }
+            
+            // Theme-aware colors
+            const textColor = isDarkMode ? '#f9fafb' : '#374151';
+            const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            
+            weeklyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(d => d.week),
+                    datasets: [{
+                        label: 'Pompki',
+                        data: chartData.map(d => d.count),
+                        backgroundColor: '#10B981',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            try {
+                createDailyChart();
+                createWeeklyChart();
+            } catch (e) {
+                console.error('Error updating charts:', e);
+            }
+        }
+
+        function toggleStats() {
+            statsVisible = !statsVisible;
+            const statsDiv = document.getElementById('extendedStats');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (statsVisible) {
+                statsDiv.style.display = 'block';
+                toggleIcon.textContent = '−';
+            } else {
+                statsDiv.style.display = 'none';
+                toggleIcon.textContent = '+';
+            }
+        }
+    </script>
+</body>
+</html>
