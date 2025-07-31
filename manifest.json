@@ -1,7 +1,7 @@
 {
   "name": "Tracker Pompek",
   "short_name": "Pompki",
-  "start_url": "tracker-pompek.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
