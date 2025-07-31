@@ -1,6 +1,6 @@
 const CACHE_NAME = 'pompki-cache-v1';
 const urlsToCache = [
-  'tracker-pompek.html',
+  'index.html',
   'manifest.json',
   'icon-192.png',
   'icon-512.png',
