@@ -491,6 +491,102 @@
             </div>
         </div>
 
+        <div class="card">
+            <h2>🗓️ Historia dni</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        let data = JSON.parse(localStorage.getItem('pushupData') || '{}');
+
+        function saveData() {
+            localStorage.setItem('pushupData', JSON.stringify(data));
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function updateAllStats() {
+            // Placeholder
+        }
+
+        function updateCharts() {
+            // Placeholder
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = '';
+
+            const sortedDates = Object.keys(data).sort((a, b) => b.localeCompare(a));
+
+            sortedDates.forEach(date => {
+                const count = data[date] || 0;
+                const wrapper = document.createElement('div');
+                wrapper.style.marginBottom = '8px';
+
+                const label = document.createElement('span');
+                label.textContent = `📅 ${date} — ${count} pompek `;
+
+                const editBtn = document.createElement('button');
+                editBtn.textContent = '✏️';
+                editBtn.className = 'btn';
+                editBtn.style.marginLeft = '8px';
+                editBtn.style.background = '#f59e0b';
+                editBtn.onclick = () => showEditField(date, count);
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(editBtn);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function showEditField(date, currentValue) {
+            const container = document.getElementById('historyList');
+            container.innerHTML = '';
+
+            const wrapper = document.createElement('div');
+            wrapper.style.marginBottom = '12px';
+
+            const label = document.createElement('span');
+            label.textContent = `✏️ Edytuj ${date}: `;
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.style.marginLeft = '8px';
+            input.style.width = '80px';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '💾 Zapisz';
+            saveBtn.className = 'btn';
+            saveBtn.style.marginLeft = '8px';
+            saveBtn.onclick = () => {
+                const val = parseInt(input.value);
+                if (!isNaN(val) && val >= 0) {
+                    data[date] = val;
+                    saveData();
+                    updateAllStats();
+                    updateCharts();
+                    renderHistoryList();
+                } else {
+                    alert('Wprowadź poprawną liczbę');
+                }
+            };
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            wrapper.appendChild(saveBtn);
+            container.appendChild(wrapper);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderHistoryList();
+        });
+    </script>
+        
         <!-- Export/Import Section -->
         <div class="card">
             <h2>💾 Zarządzanie danymi</h2>
