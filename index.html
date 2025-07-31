@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💪 Tracker Pompek</title>
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#3b82f6">
 
-<!-- iPhone specjalne tagi -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Pompki">
-<link rel="apple-touch-icon" href="icon-192-new.png">
+    <!-- iPhone specjalne tagi -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Pompki">
+    <link rel="apple-touch-icon" href="icon-192-new.png">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
@@ -98,6 +98,10 @@
         }
         
         body.dark-mode .stats-toggle {
+            color: #f9fafb;
+        }
+
+        body.dark-mode h3 {
             color: #f9fafb;
         }
         
@@ -351,6 +355,46 @@
             color: #9ca3af;
             margin-top: 2px;
         }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        body.dark-mode .history-item {
+            background: #4b5563;
+            border-color: #6b7280;
+            color: #f9fafb;
+        }
+
+        .history-date {
+            font-weight: 600;
+        }
+
+        .history-count {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-btn:hover {
+            background: #d97706;
+        }
         
         @media (max-width: 768px) {
             .charts-grid {
@@ -363,6 +407,16 @@
             
             .extended-stats {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .goal-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
             }
         }
     </style>
@@ -491,102 +545,6 @@
             </div>
         </div>
 
-        <div class="card">
-            <h2>🗓️ Historia dni</h2>
-            <div id="historyList"></div>
-        </div>
-    </div>
-
-    <script>
-        let data = JSON.parse(localStorage.getItem('pushupData') || '{}');
-
-        function saveData() {
-            localStorage.setItem('pushupData', JSON.stringify(data));
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        function updateAllStats() {
-            // Placeholder
-        }
-
-        function updateCharts() {
-            // Placeholder
-        }
-
-        function renderHistoryList() {
-            const container = document.getElementById('historyList');
-            container.innerHTML = '';
-
-            const sortedDates = Object.keys(data).sort((a, b) => b.localeCompare(a));
-
-            sortedDates.forEach(date => {
-                const count = data[date] || 0;
-                const wrapper = document.createElement('div');
-                wrapper.style.marginBottom = '8px';
-
-                const label = document.createElement('span');
-                label.textContent = `📅 ${date} — ${count} pompek `;
-
-                const editBtn = document.createElement('button');
-                editBtn.textContent = '✏️';
-                editBtn.className = 'btn';
-                editBtn.style.marginLeft = '8px';
-                editBtn.style.background = '#f59e0b';
-                editBtn.onclick = () => showEditField(date, count);
-
-                wrapper.appendChild(label);
-                wrapper.appendChild(editBtn);
-                container.appendChild(wrapper);
-            });
-        }
-
-        function showEditField(date, currentValue) {
-            const container = document.getElementById('historyList');
-            container.innerHTML = '';
-
-            const wrapper = document.createElement('div');
-            wrapper.style.marginBottom = '12px';
-
-            const label = document.createElement('span');
-            label.textContent = `✏️ Edytuj ${date}: `;
-
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.value = currentValue;
-            input.style.marginLeft = '8px';
-            input.style.width = '80px';
-
-            const saveBtn = document.createElement('button');
-            saveBtn.textContent = '💾 Zapisz';
-            saveBtn.className = 'btn';
-            saveBtn.style.marginLeft = '8px';
-            saveBtn.onclick = () => {
-                const val = parseInt(input.value);
-                if (!isNaN(val) && val >= 0) {
-                    data[date] = val;
-                    saveData();
-                    updateAllStats();
-                    updateCharts();
-                    renderHistoryList();
-                } else {
-                    alert('Wprowadź poprawną liczbę');
-                }
-            };
-
-            wrapper.appendChild(label);
-            wrapper.appendChild(input);
-            wrapper.appendChild(saveBtn);
-            container.appendChild(wrapper);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            renderHistoryList();
-        });
-    </script>
-        
         <!-- Export/Import Section -->
         <div class="card">
             <h2>💾 Zarządzanie danymi</h2>
@@ -600,6 +558,12 @@
                 💡 Eksportuj dane do pliku tekstowego, edytuj w notatniku i importuj z powrotem
             </div>
         </div>
+
+        <!-- History Section -->
+        <div class="card">
+            <h2>🗓️ Historia dni</h2>
+            <div id="historyList"></div>
+        </div>
     </div>
 
     <script>
@@ -608,7 +572,7 @@
         let goal = 1000;
         let dailyChart = null;
         let weeklyChart = null;
-        let lastAction = null; // For undo functionality
+        let lastAction = null;
         let isDarkMode = false;
 
         // Initialize app
@@ -618,7 +582,8 @@
             loadTheme();
             updateCurrentDate();
             updateAllStats();
-            createCharts();
+            updateCharts();
+            renderHistoryList();
             
             // Add enter key support for input
             document.getElementById('pushupInput').addEventListener('keypress', function(e) {
@@ -646,6 +611,8 @@
                 }
             } catch (e) {
                 console.error('Error loading data:', e);
+                data = {};
+                goal = 1000;
             }
         }
 
@@ -702,6 +669,7 @@
             
             if (!amount || amount <= 0) {
                 console.log('Invalid amount');
+                alert('Wprowadź poprawną liczbę pompek!');
                 return;
             }
             
@@ -723,6 +691,7 @@
             saveData();
             updateAllStats();
             updateCharts();
+            renderHistoryList();
             
             console.log('Pushups added successfully');
         }
@@ -744,6 +713,7 @@
             saveData();
             updateAllStats();
             updateCharts();
+            renderHistoryList();
             
             console.log('Last action undone');
         }
@@ -813,10 +783,8 @@
                     lines.forEach(line => {
                         line = line.trim();
                         
-                        // Skip comments and empty lines
                         if (line.startsWith('#') || line === '') return;
                         
-                        // Check for goal line
                         if (line.includes('CEL TOTALNY:')) {
                             const goalMatch = line.match(/(\d+)/);
                             if (goalMatch) {
@@ -825,13 +793,11 @@
                             return;
                         }
                         
-                        // Parse data lines (YYYY-MM-DD: number)
                         const match = line.match(/^(\d{4}-\d{2}-\d{2}):\s*(\d+)/);
                         if (match) {
                             const date = match[1];
                             const count = parseInt(match[2]);
                             
-                            // Validate date format
                             if (new Date(date).toString() !== 'Invalid Date' && count > 0) {
                                 newData[date] = count;
                                 importedCount++;
@@ -847,10 +813,8 @@
                     const confirmMessage = `Znaleziono ${importedCount} dni z danymi.\n\nCzy chcesz:\n- ZASTĄPIĆ wszystkie dane (usuń stare, wczytaj nowe)\n- SCALIĆ dane (dodaj nowe do istniejących)\n\nKliknij OK dla ZASTĄPIENIA, Anuluj dla SCALENIA`;
                     
                     if (confirm(confirmMessage)) {
-                        // Replace all data
                         data = newData;
                     } else {
-                        // Merge data
                         Object.keys(newData).forEach(date => {
                             data[date] = newData[date];
                         });
@@ -862,6 +826,7 @@
                     saveData();
                     updateAllStats();
                     updateCharts();
+                    renderHistoryList();
                     
                     alert(`Import zakończony pomyślnie!\nWczytano ${importedCount} dni z danymi.`);
                     console.log('Data imported successfully');
@@ -871,7 +836,6 @@
                     alert('Błąd podczas importu danych. Sprawdź format pliku.');
                 }
                 
-                // Clear the file input
                 event.target.value = '';
             };
             
@@ -903,16 +867,21 @@
         }
 
         function getStreakDays() {
-            const sortedDates = Object.keys(data).sort().reverse();
+            const today = getTodayKey();
+            const sortedDates = Object.keys(data).sort();
             let streak = 0;
+            let currentDate = new Date(today);
             
-            for (const date of sortedDates) {
-                if (data[date] > 0) {
+            while (true) {
+                const dateKey = currentDate.toISOString().split('T')[0];
+                if (data[dateKey] && data[dateKey] > 0) {
                     streak++;
                 } else {
                     break;
                 }
+                currentDate.setDate(currentDate.getDate() - 1);
             }
+            
             return streak;
         }
 
@@ -928,10 +897,7 @@
             
             console.log('Updating stats - Today:', todayCount, 'Total:', total);
             
-            // Update today count
             document.getElementById('todayCount').textContent = `${todayCount} pompek`;
-            
-            // Update main stats
             document.getElementById('totalPushups').textContent = total;
             document.getElementById('dailyAverage').textContent = `${getDailyAverage()}/dzień`;
             document.getElementById('dailyRecord').textContent = getDailyRecord();
@@ -1009,24 +975,16 @@
             return new Date(d.setDate(diff));
         }
 
-        function createCharts() {
-            try {
-                createDailyChart();
-                createWeeklyChart();
-            } catch (e) {
-                console.error('Error creating charts:', e);
-            }
-        }
-
         function createDailyChart() {
-            const ctx = document.getElementById('dailyChart').getContext('2d');
+            const ctx = document.getElementById('dailyChart');
+            if (!ctx) return;
+            
             const chartData = getDailyChartData();
             
             if (dailyChart) {
                 dailyChart.destroy();
             }
             
-            // Theme-aware colors
             const textColor = isDarkMode ? '#f9fafb' : '#374151';
             const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             
@@ -1080,14 +1038,15 @@
         }
 
         function createWeeklyChart() {
-            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            const ctx = document.getElementById('weeklyChart');
+            if (!ctx) return;
+            
             const chartData = getWeeklyData();
             
             if (weeklyChart) {
                 weeklyChart.destroy();
             }
             
-            // Theme-aware colors
             const textColor = isDarkMode ? '#f9fafb' : '#374151';
             const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
             
@@ -1143,29 +1102,137 @@
             }
         }
 
-        function toggleStats() {
-            statsVisible = !statsVisible;
-            const statsDiv = document.getElementById('extendedStats');
-            const toggleIcon = document.getElementById('toggleIcon');
+        function renderHistoryList() {
+            const container = document.getElementById('historyList');
+            if (!container) return;
             
-            if (statsVisible) {
-                statsDiv.style.display = 'block';
-                toggleIcon.textContent = '−';
-            } else {
-                statsDiv.style.display = 'none';
-                toggleIcon.textContent = '+';
+            container.innerHTML = '';
+
+            const sortedDates = Object.keys(data).sort((a, b) => b.localeCompare(a));
+
+            if (sortedDates.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Brak danych historycznych</p>';
+                return;
             }
+
+            sortedDates.forEach(date => {
+                const count = data[date] || 0;
+                if (count === 0) return;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'history-item';
+
+                const dateSpan = document.createElement('span');
+                dateSpan.className = 'history-date';
+                dateSpan.textContent = new Date(date).toLocaleDateString('pl-PL');
+
+                const countSpan = document.createElement('span');
+                countSpan.className = 'history-count';
+                countSpan.textContent = `${count} pompek`;
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-btn';
+                editBtn.textContent = '✏️';
+                editBtn.onclick = () => showEditField(date, count);
+
+                wrapper.appendChild(dateSpan);
+                wrapper.appendChild(countSpan);
+                wrapper.appendChild(editBtn);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function showEditField(date, currentValue) {
+            const container = document.getElementById('historyList');
+            const existingEdit = container.querySelector('.edit-container');
+            if (existingEdit) {
+                existingEdit.remove();
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'edit-container';
+            wrapper.style.cssText = `
+                background: #f3f4f6;
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                border: 2px solid #3b82f6;
+            `;
+
+            const label = document.createElement('span');
+            label.textContent = `Edytuj ${new Date(date).toLocaleDateString('pl-PL')}: `;
+            label.style.marginRight = '8px';
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.min = '0';
+            input.style.cssText = `
+                width: 80px;
+                padding: 4px 8px;
+                border: 1px solid #d1d5db;
+                border-radius: 4px;
+                margin-right: 8px;
+            `;
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '💾 Zapisz';
+            saveBtn.className = 'btn';
+            saveBtn.style.cssText = `
+                background: #10b981;
+                padding: 4px 12px;
+                font-size: 14px;
+                margin-right: 8px;
+            `;
+            saveBtn.onclick = () => {
+                const val = parseInt(input.value);
+                if (!isNaN(val) && val >= 0) {
+                    if (val === 0) {
+                        delete data[date];
+                    } else {
+                        data[date] = val;
+                    }
+                    saveData();
+                    updateAllStats();
+                    updateCharts();
+                    renderHistoryList();
+                } else {
+                    alert('Wprowadź poprawną liczbę (0 lub więcej)');
+                }
+            };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '❌ Anuluj';
+            cancelBtn.className = 'btn';
+            cancelBtn.style.cssText = `
+                background: #ef4444;
+                padding: 4px 12px;
+                font-size: 14px;
+            `;
+            cancelBtn.onclick = () => {
+                renderHistoryList();
+            };
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+            wrapper.appendChild(saveBtn);
+            wrapper.appendChild(cancelBtn);
+            
+            container.insertBefore(wrapper, container.firstChild);
+            input.focus();
+            input.select();
         }
     </script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker registered', reg))
-        .catch(err => console.error('Service Worker registration failed', err));
-    });
-  }
-</script>
 
+    <script>
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            });
+        }
+    </script>
 </body>
 </html>
