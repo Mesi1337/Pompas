@@ -1,9 +1,10 @@
-const CACHE_NAME = 'pompki-cache-v1';
+const CACHE_NAME = 'pompki-cache-v2';
 const urlsToCache = [
   'index.html',
   'manifest.json',
   'icon-192.png',
   'icon-512.png',
+  'malpka.gif',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'
 ];
 
