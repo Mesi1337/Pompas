@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💪 Tracker Pompek</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#3b82f6">
 
     <!-- iPhone specjalne tagi -->
@@ -447,13 +448,14 @@
 <div class="card" id="monkeyCard" style="display: flex; align-items: center; gap: 16px;">
     <img src="malpka.gif" alt="Małpka" style="width: 80px; height: 80px;">
     <div style="flex-grow: 1;">
-        <div style="font-size: 1.2rem; font-weight: bold;" id="monkeyName">Mini Małpka</div>
-        <div style="font-size: 0.9rem;">Level: <span id="monkeyLevel">0</span></div>
+        <div id="monkeyName" style="font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; margin-bottom: 4px;">Mini Małpka</div>
+        <div style="font-size: 0.85rem;" id="monkeyLevelInfo">Level: 0 | 0 / 100 XP</div>
         <div class="progress-bar" style="margin-top: 6px;">
             <div class="progress-fill" id="monkeyProgress" style="width: 0%; background: #f59e0b;"></div>
         </div>
     </div>
 </div>
+
 
 
         <!-- Stats Cards -->
@@ -1341,18 +1343,25 @@ function updateMonkeyLevel() {
         }
     }
 
-    // Ustaw dane
-    document.getElementById("monkeyLevel").textContent = currentLevel.level;
-    document.getElementById("monkeyName").textContent = currentLevel.name;
-
-    // Oblicz progres do kolejnego levela
     const nextLevel = monkeyLevels.find(l => l.level === currentLevel.level + 1);
-    if (nextLevel) {
-        const progress = ((total - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100;
-        document.getElementById("monkeyProgress").style.width = `${progress.toFixed(1)}%`;
-    } else {
-        document.getElementById("monkeyProgress").style.width = "100%";
-    }
+
+    // XP progress
+    let currentXP = total - currentLevel.threshold;
+    let xpToNext = nextLevel ? (nextLevel.threshold - currentLevel.threshold) : 0;
+
+    let xpProgressPercent = nextLevel
+        ? Math.min((currentXP / xpToNext) * 100, 100)
+        : 100;
+
+    // Update DOM
+    document.getElementById("monkeyName").textContent = currentLevel.name;
+    document.getElementById("monkeyLevelInfo").textContent = nextLevel
+        ? `Level: ${currentLevel.level} | ${currentXP} / ${xpToNext} XP`
+        : `Level: ${currentLevel.level} | MAX 🦍`;
+
+    document.getElementById("monkeyProgress").style.width = `${xpProgressPercent}%`;
+}
+
 }
 
         
@@ -1371,4 +1380,5 @@ function updateMonkeyLevel() {
 </body>
 </html>
                 
+
 
