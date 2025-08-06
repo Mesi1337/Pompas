@@ -101,7 +101,8 @@
             color: #f9fafb;
         }
 
-        body.dark-mode h3 {
+        body.dark-mode h3,
+        body.dark-mode h2 {
             color: #f9fafb;
         }
         
@@ -597,6 +598,7 @@
             updateAllStats();
             updateCharts();
             renderHistoryList();
+            setMaxHistoricalDate();
             
             // Add enter key support for input
             document.getElementById('pushupInput').addEventListener('keypress', function(e) {
@@ -604,8 +606,6 @@
                     addPushups();
                 }
             });
-            console.log('App initialized successfully');
-        });
             
             // Add enter key support for historical pushup input
             document.getElementById('historicalPushups').addEventListener('keypress', function(e) {
@@ -672,7 +672,6 @@
             
             console.log('Historical pushups added successfully');
         }
-
 
         function loadData() {
             try {
@@ -1316,5 +1315,4 @@
     </script>
 </body>
 </html>
-
-
+                
