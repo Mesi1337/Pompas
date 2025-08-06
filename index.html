@@ -443,6 +443,19 @@
             </div>
         </div>
 
+        <!-- Monkey Level Section -->
+<div class="card" id="monkeyCard" style="display: flex; align-items: center; gap: 16px;">
+    <img src="malpka.gif" alt="Małpka" style="width: 80px; height: 80px;">
+    <div style="flex-grow: 1;">
+        <div style="font-size: 1.2rem; font-weight: bold;" id="monkeyName">Mini Małpka</div>
+        <div style="font-size: 0.9rem;">Level: <span id="monkeyLevel">0</span></div>
+        <div class="progress-bar" style="margin-top: 6px;">
+            <div class="progress-fill" id="monkeyProgress" style="width: 0%; background: #f59e0b;"></div>
+        </div>
+    </div>
+</div>
+
+
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -991,6 +1004,7 @@
             
             // Update extended stats
             updateExtendedStats();
+            updateMonkeyLevel(); 
         }
 
         function updateExtendedStats() {
@@ -1301,6 +1315,47 @@
             input.focus();
             input.select();
         }
+
+        const monkeyLevels = [
+    { level: 0, name: "Mini Małpka", threshold: 0 },
+    { level: 1, name: "Małka Paker", threshold: 100 },
+    { level: 2, name: "Zwinna Małpa", threshold: 500 },
+    { level: 3, name: "Silna Małpa", threshold: 1000 },
+    { level: 4, name: "Małpa Wojownik", threshold: 2000 },
+    { level: 5, name: "Małpa Kombinator", threshold: 3000 },
+    { level: 6, name: "Turbo Małpa", threshold: 4500 },
+    { level: 7, name: "Ultra Małpa", threshold: 6000 },
+    { level: 8, name: "Mega Małpa", threshold: 8000 },
+    { level: 9, name: "Giga Małpa", threshold: 9000 },
+    { level: 10, name: "Małpi Bóg", threshold: 10000 }
+];
+
+function updateMonkeyLevel() {
+    const total = getTotalPushups();
+    let currentLevel = monkeyLevels[0];
+
+    for (let i = monkeyLevels.length - 1; i >= 0; i--) {
+        if (total >= monkeyLevels[i].threshold) {
+            currentLevel = monkeyLevels[i];
+            break;
+        }
+    }
+
+    // Ustaw dane
+    document.getElementById("monkeyLevel").textContent = currentLevel.level;
+    document.getElementById("monkeyName").textContent = currentLevel.name;
+
+    // Oblicz progres do kolejnego levela
+    const nextLevel = monkeyLevels.find(l => l.level === currentLevel.level + 1);
+    if (nextLevel) {
+        const progress = ((total - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100;
+        document.getElementById("monkeyProgress").style.width = `${progress.toFixed(1)}%`;
+    } else {
+        document.getElementById("monkeyProgress").style.width = "100%";
+    }
+}
+
+        
     </script>
 
     <script>
@@ -1316,3 +1371,4 @@
 </body>
 </html>
                 
+
