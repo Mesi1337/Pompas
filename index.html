@@ -606,6 +606,73 @@
             });
             console.log('App initialized successfully');
         });
+            
+            // Add enter key support for historical pushup input
+            document.getElementById('historicalPushups').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addHistoricalPushups();
+                }
+            });
+            console.log('App initialized successfully');
+        });
+
+        function setMaxHistoricalDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('historicalDate').max = today;
+        }
+
+        function addHistoricalPushups() {
+            console.log('Adding historical pushups...');
+            const dateInput = document.getElementById('historicalDate');
+            const amountInput = document.getElementById('historicalPushups');
+            
+            const selectedDate = dateInput.value;
+            const amount = parseInt(amountInput.value);
+            
+            console.log('Selected date:', selectedDate, 'Amount:', amount);
+            
+            if (!selectedDate) {
+                alert('Wybierz datę!');
+                return;
+            }
+            
+            if (!amount || amount <= 0) {
+                alert('Wprowadź poprawną liczbę pompek!');
+                return;
+            }
+            
+            const today = getTodayKey();
+            if (selectedDate > today) {
+                alert('Nie możesz dodać pompek z przyszłości!');
+                return;
+            }
+            
+            // Store for undo functionality
+            lastAction = {
+                type: 'add',
+                date: selectedDate,
+                amount: amount,
+                previousValue: data[selectedDate] || 0
+            };
+            
+            data[selectedDate] = (data[selectedDate] || 0) + amount;
+            console.log('Updated data:', data);
+            
+            // Clear inputs
+            dateInput.value = '';
+            amountInput.value = '';
+            
+            saveData();
+            updateAllStats();
+            updateCharts();
+            renderHistoryList();
+            
+            const formattedDate = new Date(selectedDate).toLocaleDateString('pl-PL');
+            alert(`Dodano ${amount} pompek do dnia ${formattedDate}! 💪`);
+            
+            console.log('Historical pushups added successfully');
+        }
+
 
         function loadData() {
             try {
@@ -1249,4 +1316,5 @@
     </script>
 </body>
 </html>
+
 
