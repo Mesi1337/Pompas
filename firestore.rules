@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidUser(data) {
+      return data.lastWeight is number && data.lastWeight >= 0 && data.lastWeight <= 500
+          && data.currentStreak is number && data.currentStreak >= 0
+          && data.longestStreak is number && data.longestStreak >= 0
+          && (data.lastActiveDate == null || (data.lastActiveDate is string && data.lastActiveDate.size() <= 20));
+    }
+
+    function isValidSet(data) {
+      return data.userId == request.auth.uid
+          && data.weight is number && data.weight > 0 && data.weight <= 500
+          && data.reps is number && data.reps > 0 && data.reps <= 1000
+          && data.timestamp is number
+          && data.keys().hasAll(['userId', 'weight', 'reps', 'timestamp'])
+          && data.keys().size() == 4;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming())
+                   && incoming().keys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak'])
+                   && incoming().keys().size() == 4;
+      allow update: if isOwner(userId) && isValidUser(incoming())
+                   && incoming().diff(resource.data).affectedKeys().hasOnly(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak']);
+    }
+
+    match /sets/{setId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidSet(incoming());
+      allow update, delete: if false;
+    }
+  }
+}

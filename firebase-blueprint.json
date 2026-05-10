@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User preferences and streak data",
+      "type": "object",
+      "properties": {
+        "lastWeight": { "type": "number", "description": "Last used weight in kg" },
+        "currentStreak": { "type": "number", "description": "Current consecutive days active" },
+        "lastActiveDate": { "type": "string", "description": "ISO date of last session" },
+        "longestStreak": { "type": "number", "description": "Record streak" }
+      },
+      "required": ["lastWeight", "currentStreak", "longestStreak"]
+    },
+    "WorkSet": {
+      "title": "Workout Set",
+      "description": "A single set of bench press",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "weight": { "type": "number" },
+        "reps": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "weight", "reps", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user settings and streaks"
+    },
+    "/sets/{setId}": {
+      "schema": "WorkSet",
+      "description": "Collection of all workout sets"
+    }
+  }
+}
