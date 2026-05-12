@@ -37,27 +37,40 @@ export default function App() {
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
     let unsubscribeSets: (() => void) | null = null;
+    let isMounted = true;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
+      if (!isMounted) return;
+      
       setUser(u);
+      
+      // Clear old subscriptions
+      if (unsubscribeProfile) unsubscribeProfile();
+      if (unsubscribeSets) unsubscribeSets();
+
       if (u) {
+        console.log("Logged in as:", u.uid);
         // Initialize subscriptions
         unsubscribeProfile = workoutService.subscribeToProfile(u.uid, (p) => {
+          if (!isMounted) return;
           if (p) {
             setProfile(p);
-            // Only set weight initially or if not currently interacting
+            // Only set weight initially
             setWeight((prev) => prev === 0 ? p.lastWeight : prev);
           } else {
+            console.log("Profile not found, creating...");
             workoutService.createUserProfile(u.uid);
           }
         });
 
         unsubscribeSets = workoutService.subscribeToTodaySets(u.uid, (reps) => {
+          if (!isMounted) return;
+          console.log("Today reps updated via snapshot:", reps);
           setTodayReps(reps);
         });
 
         // Initialize static periodic stats
-        workoutService.getStats(u.uid).then(setStats);
+        workoutService.getStats(u.uid).then(s => isMounted && setStats(s));
       } else {
         setProfile(null);
         setTodayReps(0);
@@ -67,17 +80,22 @@ export default function App() {
     });
 
     return () => {
+      isMounted = false;
       unsubscribeAuth();
       if (unsubscribeProfile) unsubscribeProfile();
       if (unsubscribeSets) unsubscribeSets();
     };
   }, []);
 
-  // Update periodic stats when active tab changes or reps increase (periodically or on trigger)
+  // Update periodic stats when active tab changes or reps increase
   useEffect(() => {
-    if (user && activeTab === 'stats') {
-      workoutService.getStats(user.uid).then(setStats);
-    }
+    const refreshStats = async () => {
+      if (user && activeTab === 'stats') {
+        const s = await workoutService.getStats(user.uid);
+        setStats(s);
+      }
+    };
+    refreshStats();
   }, [user, activeTab, todayReps]);
 
   const handleAddSet = async (repCount?: number) => {
@@ -359,7 +377,7 @@ export default function App() {
       {/* Footer Info (Hidden/Minimal) */}
       <footer className="p-6 text-center opacity-30 select-none flex flex-col gap-1">
         <span className="text-[8px] font-bold uppercase tracking-[0.5em] text-slate-500">Elite Performance Tracker</span>
-        <span className="text-[6px] font-bold text-slate-600 uppercase tracking-widest">Version 2.2 • Updated: May 12</span>
+        <span className="text-[6px] font-bold text-slate-600 uppercase tracking-widest">Version 2.3 • Real-Time Engine Active</span>
       </footer>
     </div>
   );

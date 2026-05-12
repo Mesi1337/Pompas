@@ -42,8 +42,7 @@ service cloud.firestore {
                    && incoming().keys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak', 'totalXp'])
                    && incoming().keys().size() == 5;
       allow update: if isOwner(userId) && isValidUser(incoming())
-                   && incoming().diff(resource.data).affectedKeys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak'])
-                   && incoming().diff(resource.data).affectedKeys().hasAny(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak', 'totalXp']);
+                   && incoming().diff(resource.data).affectedKeys().hasOnly(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak', 'totalXp']);
     }
 
     match /sets/{setId} {
