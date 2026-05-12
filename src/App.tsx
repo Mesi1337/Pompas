@@ -35,40 +35,50 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'track' | 'stats'>('track');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+    let unsubscribeProfile: (() => void) | null = null;
+    let unsubscribeSets: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const p = await workoutService.getUserProfile(u.uid);
-        if (p) {
-          setProfile(p);
-          setWeight(p.lastWeight);
-          refreshStats(u.uid, p.lastWeight);
-        } else {
-          const newP = await workoutService.createUserProfile(u.uid);
-          setProfile(newP);
-          setWeight(newP.lastWeight);
-          refreshStats(u.uid, newP.lastWeight);
-        }
+        // Initialize subscriptions
+        unsubscribeProfile = workoutService.subscribeToProfile(u.uid, (p) => {
+          if (p) {
+            setProfile(p);
+            // Only set weight initially or if not currently interacting
+            setWeight((prev) => prev === 0 ? p.lastWeight : prev);
+          } else {
+            workoutService.createUserProfile(u.uid);
+          }
+        });
+
+        unsubscribeSets = workoutService.subscribeToTodaySets(u.uid, (reps) => {
+          setTodayReps(reps);
+        });
+
+        // Initialize static periodic stats
+        workoutService.getStats(u.uid).then(setStats);
+      } else {
+        setProfile(null);
+        setTodayReps(0);
+        setStats(null);
       }
       setLoading(false);
     });
-    return unsubscribe;
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeProfile) unsubscribeProfile();
+      if (unsubscribeSets) unsubscribeSets();
+    };
   }, []);
 
+  // Update periodic stats when active tab changes or reps increase (periodically or on trigger)
   useEffect(() => {
-    if (user && weight > 0) {
-      workoutService.getTodayTotalReps(user.uid, weight).then(setTodayReps);
+    if (user && activeTab === 'stats') {
+      workoutService.getStats(user.uid).then(setStats);
     }
-  }, [weight, user]);
-
-  const refreshStats = async (uid: string, currentWeight: number) => {
-    const [tReps, s] = await Promise.all([
-      workoutService.getTodayTotalReps(uid, currentWeight),
-      workoutService.getStats(uid)
-    ]);
-    setTodayReps(tReps);
-    setStats(s);
-  };
+  }, [user, activeTab, todayReps]);
 
   const handleAddSet = async (repCount?: number) => {
     const finalReps = repCount || reps;
@@ -76,9 +86,6 @@ export default function App() {
     setIsAdding(true);
     try {
       await workoutService.addSet(user.uid, weight, finalReps);
-      const p = await workoutService.getUserProfile(user.uid);
-      setProfile(p);
-      await refreshStats(user.uid, weight);
       if (!repCount) setReps(0);
     } catch (error) {
       console.error(error);

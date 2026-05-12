@@ -10,7 +10,7 @@ import {
   updateDoc,
   orderBy,
   limit,
-  Timestamp,
+  onSnapshot,
   type DocumentData
 } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
@@ -130,14 +130,13 @@ export const workoutService = {
     return { level, progress: Math.min(progress, 100) };
   },
 
-  async getTodayTotalReps(userId: string, weight: number): Promise<number> {
+  async getTodayTotalReps(userId: string): Promise<number> {
     const path = 'sets';
     try {
       const todayStart = startOfDay(new Date()).getTime();
       const q = query(
         collection(db, 'sets'),
         where('userId', '==', userId),
-        where('weight', '==', weight),
         where('timestamp', '>=', todayStart)
       );
       const snapshot = await getDocs(q);
@@ -150,6 +149,39 @@ export const workoutService = {
       handleFirestoreError(error, OperationType.LIST, path);
       return 0;
     }
+  },
+
+  subscribeToProfile(userId: string, callback: (profile: UserProfile | null) => void) {
+    const path = `users/${userId}`;
+    return onSnapshot(doc(db, 'users', userId), (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ uid: userId, ...snapshot.data() } as UserProfile);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, path);
+    });
+  },
+
+  subscribeToTodaySets(userId: string, callback: (totalReps: number) => void) {
+    const path = 'sets';
+    const todayStart = startOfDay(new Date()).getTime();
+    const q = query(
+      collection(db, 'sets'),
+      where('userId', '==', userId),
+      where('timestamp', '>=', todayStart)
+    );
+    
+    return onSnapshot(q, (snapshot) => {
+      let total = 0;
+      snapshot.forEach(doc => {
+        total += (doc.data().reps || 0);
+      });
+      callback(total);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
   },
 
   async getStats(userId: string) {
