@@ -53,7 +53,8 @@ export const workoutService = {
       lastWeight: 80, // Default weight
       currentStreak: 0,
       lastActiveDate: null,
-      longestStreak: 0
+      longestStreak: 0,
+      totalXp: 0
     };
     try {
       await setDoc(doc(db, 'users', userId), initialProfile);
@@ -75,11 +76,15 @@ export const workoutService = {
         timestamp: now.getTime()
       });
 
-      // Update user streak and last weight
+      // Update user streak, last weight and XP
       const profile = await this.getUserProfile(userId) || await this.createUserProfile(userId);
-      let { currentStreak, longestStreak, lastActiveDate } = profile;
+      let { currentStreak, longestStreak, lastActiveDate, totalXp = 0 } = profile;
       const today = format(now, 'yyyy-MM-dd');
       
+      // Leveling: each rep gives some XP. Heavier weight gives more? Let's stick to reps for now as requested.
+      // 1 rep = 10 XP
+      totalXp += reps * 10;
+
       if (!lastActiveDate) {
         currentStreak = 1;
       } else {
@@ -87,7 +92,7 @@ export const workoutService = {
         const yesterday = subDays(now, 1);
         
         if (isSameDay(lastDate, now)) {
-          // Already worked out today, streak stays the same
+          // Already worked out today
         } else if (isSameDay(lastDate, yesterday)) {
           currentStreak += 1;
         } else {
@@ -103,12 +108,26 @@ export const workoutService = {
         lastWeight: weight,
         currentStreak,
         longestStreak,
-        lastActiveDate: today
+        lastActiveDate: today,
+        totalXp: totalXp
       });
 
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
+  },
+
+  calculateLevel(xp: number): { level: number; progress: number } {
+    // Basic level logic: level = floor(sqrt(xp/100)) + 1
+    // xp = 0 -> level 1
+    // xp = 100 -> level 2
+    // xp = 400 -> level 3
+    // ...
+    const level = Math.floor(Math.sqrt(xp / 100)) + 1;
+    const currentLevelXp = Math.pow(level - 1, 2) * 100;
+    const nextLevelXp = Math.pow(level, 2) * 100;
+    const progress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+    return { level, progress: Math.min(progress, 100) };
   },
 
   async getTodayTotalReps(userId: string, weight: number): Promise<number> {

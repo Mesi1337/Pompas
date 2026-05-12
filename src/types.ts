@@ -4,6 +4,7 @@ export interface UserProfile {
   currentStreak: number;
   lastActiveDate: string | null;
   longestStreak: number;
+  totalXp?: number;
 }
 
 export interface WorkSet {

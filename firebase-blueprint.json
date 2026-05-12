@@ -8,7 +8,8 @@
         "lastWeight": { "type": "number", "description": "Last used weight in kg" },
         "currentStreak": { "type": "number", "description": "Current consecutive days active" },
         "lastActiveDate": { "type": "string", "description": "ISO date of last session" },
-        "longestStreak": { "type": "number", "description": "Record streak" }
+        "longestStreak": { "type": "number", "description": "Record streak" },
+        "totalXp": { "type": "number", "description": "Total experience points" }
       },
       "required": ["lastWeight", "currentStreak", "longestStreak"]
     },
