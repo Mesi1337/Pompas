@@ -23,6 +23,7 @@ service cloud.firestore {
       return data.lastWeight is number && data.lastWeight >= 0 && data.lastWeight <= 500
           && data.currentStreak is number && data.currentStreak >= 0
           && data.longestStreak is number && data.longestStreak >= 0
+          && (data.totalXp == null || data.totalXp is number)
           && (data.lastActiveDate == null || (data.lastActiveDate is string && data.lastActiveDate.size() <= 20));
     }
 
@@ -38,10 +39,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow create: if isOwner(userId) && isValidUser(incoming())
-                   && incoming().keys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak'])
-                   && incoming().keys().size() == 4;
+                   && incoming().keys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak', 'totalXp'])
+                   && incoming().keys().size() == 5;
       allow update: if isOwner(userId) && isValidUser(incoming())
-                   && incoming().diff(resource.data).affectedKeys().hasOnly(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak']);
+                   && incoming().diff(resource.data).affectedKeys().hasAll(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak'])
+                   && incoming().diff(resource.data).affectedKeys().hasAny(['lastWeight', 'currentStreak', 'lastActiveDate', 'longestStreak', 'totalXp']);
     }
 
     match /sets/{setId} {

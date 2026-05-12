@@ -350,8 +350,9 @@ export default function App() {
       </main>
 
       {/* Footer Info (Hidden/Minimal) */}
-      <footer className="p-6 text-center opacity-30 select-none">
+      <footer className="p-6 text-center opacity-30 select-none flex flex-col gap-1">
         <span className="text-[8px] font-bold uppercase tracking-[0.5em] text-slate-500">Elite Performance Tracker</span>
+        <span className="text-[6px] font-bold text-slate-600 uppercase tracking-widest">Version 2.2 • Updated: May 12</span>
       </footer>
     </div>
   );
